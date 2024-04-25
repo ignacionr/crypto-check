@@ -12,8 +12,7 @@ class TokenContractResolver {
         try {
             s->append((char*)contents, newLength);
         } catch (std::bad_alloc &e) {
-            // handle memory problem
-            return 0;
+            throw;
         }
         return newLength;
     }
@@ -39,6 +38,9 @@ public:
                 throw std::runtime_error(curl_easy_strerror(res));
 
             rapidjson::Document d;
+
+            std::cerr << __FILE__ << ":" << __LINE__ << "-->" << readBuffer << "<--" << std::endl;
+
             d.Parse(readBuffer.c_str());
             if (d.HasMember("contractAddress") && d["contractAddress"].IsString()) {
                 return d["contractAddress"].GetString();

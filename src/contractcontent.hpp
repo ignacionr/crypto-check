@@ -1,7 +1,12 @@
 #pragma once
 
-#include <cstring> // For size_t and std::memcpy
-
+#include <cstring>  // For size_t and std::memcpy
+#include <string>
+#include <stdexcept>
+#include <curl/curl.h>
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 class ContractContent {
     std::string api_key;
@@ -27,28 +32,51 @@ public:
         CURL *curl;
         CURLcode res;
         std::string readBuffer;
-        std::string url = "https://eth-mainnet.alchemyapi.io/v2/" + api_key + "/getBytecode?address=" + contractAddress;
+        std::string url = "https://eth-mainnet.alchemyapi.io/v2/" + api_key;
 
+        // Prepare the JSON data for the POST request
+        rapidjson::Document doc;
+        doc.SetObject();
+        rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+        doc.AddMember("jsonrpc", rapidjson::Value("2.0", allocator), allocator);
+        doc.AddMember("method", rapidjson::Value("eth_getCode", allocator), allocator);
+        rapidjson::Value params(rapidjson::kArrayType);
+        params.PushBack(rapidjson::Value(contractAddress.c_str(), allocator), allocator);
+        params.PushBack(rapidjson::Value("latest", allocator), allocator);
+        doc.AddMember("params", params, allocator);
+        doc.AddMember("id", 1, allocator);
+
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer <rapidjson::StringBuffer> writer(buffer);
+        doc.Accept(writer);
+
+        // Convert the JSON document to a string
+        std::string jsonStr = buffer.GetString();
+
+        // Initialize CURL
+        curl_global_init(CURL_GLOBAL_DEFAULT);
         curl = curl_easy_init();
         if(curl) {
             curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonStr.c_str());
             res = curl_easy_perform(curl);
-            curl_easy_cleanup(curl);
-
-            if(res != CURLE_OK)
-                throw std::runtime_error(curl_easy_strerror(res));
-
-            rapidjson::Document d;
-            d.Parse(readBuffer.c_str());
-            if (d.HasMember("bytecode") && d["bytecode"].IsString()) {
-                return d["bytecode"].GetString();
-            } else {
-                return std::string("Error: Bytecode not found");
+            if(res != CURLE_OK) {
+                std::cerr << "cURL error: " << curl_easy_strerror(res) << std::endl;
             }
-        } else {
-            throw std::runtime_error("Failed to initialize curl");
+            curl_easy_cleanup(curl);
         }
+        curl_global_cleanup();
+
+        // use rapidjson to parse the response
+        rapidjson::Document d;
+        d.Parse(readBuffer.data(), readBuffer.size());
+        if (d.HasMember("result") && d["result"].IsString()) {
+            return d["result"].GetString();
+        } else {
+            return std::string("Error: Contract bytecode not found");
+        }
+        return readBuffer;
     }
 };
