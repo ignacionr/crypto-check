@@ -1,10 +1,12 @@
 # CryptoChecker - A Tool for Verifying Token Fiability
 
+[![Build Status](https://github.com/ignacionr/crypto-check/actions/workflows/cmake-single-platform.yml/badge.svg)](https://github.com/ignacionr/crypto-check/actions/workflows/cmake-single-platform.yml)
+
 **CryptoChecker** aims to verify the reliability of blockchain tokens by employing a two-stage process involving data collection and analysis.
 
 ## Components
 
-### Farmhands
+...
 These processes are responsible for gathering data points about a given Token/Symbol:
 - **Token Gatherer**: Saves the token that the user wants to investigate.
 - **Token Contract Resolver**: Resolves a given token to its corresponding on-chain contract.
