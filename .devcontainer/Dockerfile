@@ -14,3 +14,4 @@ RUN apt-get -y install \
     libssl-dev \
     clang-15
 
+RUN apt-get -y install libcurl4-openssl-dev
