@@ -34,3 +34,6 @@ RUN apt -y install libssl-dev python3-dev python3-pip
 
 # Install mythril
 RUN pip3 install mythril --break-system-packages
+
+RUN apt -y install curl
+RUN curl -L https://foundry.paradigm.xyz | bash

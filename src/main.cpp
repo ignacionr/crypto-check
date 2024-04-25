@@ -17,21 +17,16 @@ int main() {
 
     try {
         auto token = gatherer.getTokenFromUser();
-            std::cerr << __FILE__ << ":" << __LINE__ << std::endl;
         std::cout << "Looking for: " << token << std::endl;
         auto coinId = symbolToCoinId.queryCoinGeckoAPI(token);
         if (coinId.empty()) {
-            std::cerr << "Error: Coin ID not found" << std::endl;
-            return -1;
+            throw std::runtime_error("Coin ID not found");
         }
-            std::cerr << __FILE__ << ":" << __LINE__ << std::endl;
         std::cout << "Coin ID: " << coinId << std::endl;
-            std::cerr << __FILE__ << ":" << __LINE__ << std::endl;
         auto ethereum_contract = symbolToCoinId.getEthPlatformForCoin(coinId);
         std::cout << "Ethereum Contract: " << ethereum_contract << std::endl;
         if (ethereum_contract.empty()) {
-            std::cerr << "Error: Ethereum contract not found" << std::endl;
-            return -1;
+            throw std::runtime_error("Ethereum contract not found");
         }
         auto bytecode = content.getContractContent(ethereum_contract);
         // save it to codefile.txt
