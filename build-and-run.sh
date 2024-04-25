@@ -2,6 +2,4 @@
 
 mkdir -p build
 cd build
-cmake ..
-make
-./crch
+cmake .. && cmake --build . && ./crch

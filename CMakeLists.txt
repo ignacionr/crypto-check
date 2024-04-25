@@ -7,3 +7,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(include)
 
 add_executable(crch src/main.cpp)
+target_link_libraries(crch curl)
